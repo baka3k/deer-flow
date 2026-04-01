@@ -124,7 +124,7 @@ mkdir -p logs
 
 ensure_port_free 2024 "LangGraph" || exit 1
 ensure_port_free 8001 "Gateway API" || exit 1
-ensure_port_free 3000 "Frontend" || exit 1
+ensure_port_free 4000 "Frontend" || exit 1
 ensure_port_free 2026 "Nginx" || exit 1
 
 if [ ! -x "$REPO_ROOT/frontend/node_modules/.bin/next" ]; then
@@ -160,14 +160,14 @@ nohup sh -c 'cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --hos
 echo "✓ Gateway API started on localhost:8001"
 
 echo "Starting Frontend..."
-nohup sh -c 'cd frontend && pnpm exec next dev --turbo --hostname 127.0.0.1 > ../logs/frontend.log 2>&1' &
-./scripts/wait-for-port.sh 3000 120 "Frontend" || {
+nohup sh -c 'cd frontend && pnpm exec next dev --turbo --hostname 127.0.0.1 --port 4000 > ../logs/frontend.log 2>&1' &
+./scripts/wait-for-port.sh 4000 120 "Frontend" || {
     echo "✗ Frontend failed to start. Last log output:"
     tail -60 logs/frontend.log
     cleanup_on_failure
     exit 1
 }
-echo "✓ Frontend started on localhost:3000"
+echo "✓ Frontend started on localhost:4000"
 
 echo "Starting Nginx reverse proxy..."
 nohup sh -c 'nginx -g "daemon off;" -c "$1/docker/nginx/nginx.local.conf" -p "$1" > logs/nginx.log 2>&1' _ "$REPO_ROOT" &

@@ -28,10 +28,10 @@ for arg in "$@"; do
 done
 
 if $DEV_MODE; then
-    FRONTEND_CMD=(pnpm exec next dev --turbo --hostname 127.0.0.1)
+    FRONTEND_CMD=(pnpm exec next dev --turbo --hostname 127.0.0.1 --port 4000)
 else
     BETTER_AUTH_SECRET=$(python3 -c 'import secrets; print(secrets.token_hex(16))')
-    FRONTEND_CMD=(env "BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET" sh -c 'pnpm run build && pnpm exec next start --hostname 127.0.0.1')
+    FRONTEND_CMD=(env "BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET" sh -c 'pnpm run build && pnpm exec next start --hostname 127.0.0.1 --port 4000')
 fi
 
 # ── Stop existing services ────────────────────────────────────────────────────
@@ -175,7 +175,7 @@ mkdir -p logs
 
 ensure_port_free 2024 "LangGraph" || exit 1
 ensure_port_free 8001 "Gateway API" || exit 1
-ensure_port_free 3000 "Frontend" || exit 1
+ensure_port_free 4000 "Frontend" || exit 1
 ensure_port_free 2026 "Nginx" || exit 1
 
 if [ ! -x "$REPO_ROOT/frontend/node_modules/.bin/next" ]; then
@@ -229,12 +229,12 @@ echo "✓ Gateway API started on localhost:8001"
 
 echo "Starting Frontend..."
 (cd frontend && "${FRONTEND_CMD[@]}" > ../logs/frontend.log 2>&1) &
-./scripts/wait-for-port.sh 3000 120 "Frontend" || {
+./scripts/wait-for-port.sh 4000 120 "Frontend" || {
     echo "  See logs/frontend.log for details"
     tail -20 logs/frontend.log
     cleanup
 }
-echo "✓ Frontend started on localhost:3000"
+echo "✓ Frontend started on localhost:4000"
 
 echo "Starting Nginx reverse proxy..."
 nginx -g 'daemon off;' -c "$REPO_ROOT/docker/nginx/nginx.local.conf" -p "$REPO_ROOT" > logs/nginx.log 2>&1 &
