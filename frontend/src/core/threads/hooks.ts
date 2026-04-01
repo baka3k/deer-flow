@@ -55,6 +55,44 @@ function getStreamErrorMessage(error: unknown): string {
   return "Request failed.";
 }
 
+function isRunNotFoundError(error: unknown): boolean {
+  if (typeof error === "string") {
+    return /run not found/i.test(error);
+  }
+
+  if (error instanceof Error) {
+    if (/run not found/i.test(error.message)) {
+      return true;
+    }
+  }
+
+  if (typeof error === "object" && error !== null) {
+    const status = Reflect.get(error, "status");
+    const detail = Reflect.get(error, "detail");
+    const message = Reflect.get(error, "message");
+    const nestedError = Reflect.get(error, "error");
+
+    if (status === 404) {
+      if (typeof detail === "string" && /run not found/i.test(detail)) {
+        return true;
+      }
+      if (typeof message === "string" && /run not found/i.test(message)) {
+        return true;
+      }
+    }
+
+    if (typeof message === "string" && /run not found/i.test(message)) {
+      return true;
+    }
+
+    if (nestedError !== undefined) {
+      return isRunNotFoundError(nestedError);
+    }
+  }
+
+  return false;
+}
+
 export function useThreadStream({
   threadId,
   context,
@@ -114,7 +152,7 @@ export function useThreadStream({
     client: getAPIClient(isMock),
     assistantId: "lead_agent",
     threadId: onStreamThreadId,
-    reconnectOnMount: true,
+    reconnectOnMount: false,
     fetchStateHistory: { limit: 1 },
     onCreated(meta) {
       handleStreamStart(meta.thread_id);
@@ -172,8 +210,19 @@ export function useThreadStream({
         updateSubtask({ id: e.task_id, latestMessage: e.message });
       }
     },
-    onError(error) {
+    onError(error, run) {
       setOptimisticMessages([]);
+      if (isRunNotFoundError(error)) {
+        const runThreadId =
+          run?.thread_id && run.thread_id.trim()
+            ? run.thread_id
+            : threadIdRef.current;
+        if (runThreadId && typeof window !== "undefined") {
+          window.sessionStorage.removeItem(`lg:stream:${runThreadId}`);
+        }
+        toast.error("Run stream cu da khong ton tai. Vui long gui lai tin nhan.");
+        return;
+      }
       toast.error(getStreamErrorMessage(error));
     },
     onFinish(state) {
@@ -363,7 +412,7 @@ export function useThreadStream({
           {
             threadId: threadId,
             streamSubgraphs: true,
-            streamResumable: true,
+            streamResumable: false,
             config: {
               recursion_limit: 1000,
             },

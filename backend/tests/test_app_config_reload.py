@@ -79,3 +79,30 @@ def test_get_app_config_reloads_when_config_path_changes(tmp_path, monkeypatch):
         assert second is not first
     finally:
         reset_app_config()
+
+
+def test_get_app_config_uses_cached_path_when_later_resolution_fails(tmp_path, monkeypatch):
+    config_path = tmp_path / "config.yaml"
+    extensions_path = tmp_path / "extensions_config.json"
+    empty_dir = tmp_path / "no-config-here"
+    empty_dir.mkdir()
+
+    _write_extensions_config(extensions_path)
+    _write_config(config_path, model_name="cached-model", supports_thinking=False)
+
+    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    reset_app_config()
+
+    try:
+        initial = get_app_config()
+        assert initial.models[0].name == "cached-model"
+
+        monkeypatch.delenv("DEER_FLOW_CONFIG_PATH", raising=False)
+        monkeypatch.chdir(empty_dir)
+
+        cached = get_app_config()
+        assert cached.models[0].name == "cached-model"
+        assert cached is initial
+    finally:
+        reset_app_config()

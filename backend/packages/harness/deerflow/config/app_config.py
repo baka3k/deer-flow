@@ -279,7 +279,25 @@ def get_app_config() -> AppConfig:
     if _app_config is not None and _app_config_is_custom:
         return _app_config
 
-    resolved_path = AppConfig.resolve_config_path()
+    resolved_path: Path | None = None
+    resolve_error: Exception | None = None
+    try:
+        resolved_path = AppConfig.resolve_config_path()
+    except FileNotFoundError as exc:
+        # Tool calls and background workers may run with a different cwd than
+        # the initial application bootstrap. If we already loaded a valid config
+        # once, keep using that cached path instead of failing mid-run.
+        resolve_error = exc
+        if _app_config_path is not None and _app_config_path.exists():
+            resolved_path = _app_config_path
+        else:
+            raise
+
+    if resolved_path is None:
+        if resolve_error is not None:
+            raise resolve_error
+        raise FileNotFoundError("Unable to resolve DeerFlow config path")
+
     current_mtime = _get_config_mtime(resolved_path)
 
     should_reload = _app_config is None or _app_config_path != resolved_path or _app_config_mtime != current_mtime

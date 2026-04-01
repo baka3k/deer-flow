@@ -18,6 +18,7 @@ echo "Stopping existing services if any..."
 pkill -f "langgraph dev" 2>/dev/null || true
 pkill -f "uvicorn app.gateway.app:app" 2>/dev/null || true
 pkill -f "next dev" 2>/dev/null || true
+pkill -f "next start" 2>/dev/null || true
 nginx -c "$REPO_ROOT/docker/nginx/nginx.local.conf" -p "$REPO_ROOT" -s quit 2>/dev/null || true
 sleep 1
 pkill -9 nginx 2>/dev/null || true
@@ -48,6 +49,15 @@ if ! { \
     echo "  Run 'make config' from the repo root to generate ./config.yaml, then set required model API keys in .env or your config file."
     exit 1
 fi
+
+if [ -n "${DEER_FLOW_CONFIG_PATH:-}" ]; then
+    DEER_FLOW_CONFIG_PATH="$(cd "$(dirname "$DEER_FLOW_CONFIG_PATH")" && pwd)/$(basename "$DEER_FLOW_CONFIG_PATH")"
+elif [ -f "$REPO_ROOT/backend/config.yaml" ]; then
+    DEER_FLOW_CONFIG_PATH="$REPO_ROOT/backend/config.yaml"
+else
+    DEER_FLOW_CONFIG_PATH="$REPO_ROOT/config.yaml"
+fi
+export DEER_FLOW_CONFIG_PATH
 
 # ── Auto-upgrade config ──────────────────────────────────────────────────
 
@@ -83,7 +93,7 @@ is_port_listening() {
         fi
     fi
 
-    if command -v netstat >/dev/null 2>&1; then
+    if [ "$(uname)" != "Darwin" ] && command -v netstat >/dev/null 2>&1; then
         if netstat -ltn 2>/dev/null | awk '{print $4}' | grep -Eq "(^|[.:])${port}$"; then
             return 0
         fi
