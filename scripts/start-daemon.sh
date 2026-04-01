@@ -68,9 +68,60 @@ cleanup_on_failure() {
 
 trap cleanup_on_failure INT TERM
 
+is_port_listening() {
+    local port="${1:?port is required}"
+
+    if command -v lsof >/dev/null 2>&1; then
+        if lsof -nP -iTCP:"$port" -sTCP:LISTEN -t >/dev/null 2>&1; then
+            return 0
+        fi
+    fi
+
+    if command -v ss >/dev/null 2>&1; then
+        if ss -ltn "( sport = :$port )" 2>/dev/null | tail -n +2 | grep -q .; then
+            return 0
+        fi
+    fi
+
+    if command -v netstat >/dev/null 2>&1; then
+        if netstat -ltn 2>/dev/null | awk '{print $4}' | grep -Eq "(^|[.:])${port}$"; then
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+ensure_port_free() {
+    local port="${1:?port is required}"
+    local service="${2:-Service}"
+
+    if ! is_port_listening "$port"; then
+        return 0
+    fi
+
+    echo "✗ $service cannot start because port $port is already in use."
+    if command -v lsof >/dev/null 2>&1; then
+        lsof -nP -iTCP:"$port" -sTCP:LISTEN || true
+    fi
+    echo "  Stop the existing process on port $port, then retry."
+    return 1
+}
+
 # ── Start services ────────────────────────────────────────────────────────────
 
 mkdir -p logs
+
+ensure_port_free 2024 "LangGraph" || exit 1
+ensure_port_free 8001 "Gateway API" || exit 1
+ensure_port_free 3000 "Frontend" || exit 1
+ensure_port_free 2026 "Nginx" || exit 1
+
+if [ ! -x "$REPO_ROOT/frontend/node_modules/.bin/next" ]; then
+    echo "✗ Frontend dependencies are not installed."
+    echo "  Run 'make install' or 'cd frontend && pnpm install', then retry."
+    exit 1
+fi
 
 echo "Starting LangGraph server..."
 nohup sh -c 'cd backend && NO_COLOR=1 uv run langgraph dev --no-browser --allow-blocking --no-reload > ../logs/langgraph.log 2>&1' &
@@ -99,7 +150,7 @@ nohup sh -c 'cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --hos
 echo "✓ Gateway API started on localhost:8001"
 
 echo "Starting Frontend..."
-nohup sh -c 'cd frontend && pnpm run dev > ../logs/frontend.log 2>&1' &
+nohup sh -c 'cd frontend && pnpm exec next dev --turbo --hostname 127.0.0.1 > ../logs/frontend.log 2>&1' &
 ./scripts/wait-for-port.sh 3000 120 "Frontend" || {
     echo "✗ Frontend failed to start. Last log output:"
     tail -60 logs/frontend.log

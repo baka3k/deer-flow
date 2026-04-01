@@ -28,9 +28,10 @@ for arg in "$@"; do
 done
 
 if $DEV_MODE; then
-    FRONTEND_CMD="pnpm run dev"
+    FRONTEND_CMD=(pnpm exec next dev --turbo --hostname 127.0.0.1)
 else
-    FRONTEND_CMD="env BETTER_AUTH_SECRET=$(python3 -c 'import secrets; print(secrets.token_hex(16))') pnpm run preview"
+    BETTER_AUTH_SECRET=$(python3 -c 'import secrets; print(secrets.token_hex(16))')
+    FRONTEND_CMD=(env "BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET" sh -c 'pnpm run build && pnpm exec next start --hostname 127.0.0.1')
 fi
 
 # ── Stop existing services ────────────────────────────────────────────────────
@@ -118,9 +119,60 @@ cleanup() {
 }
 trap cleanup INT TERM
 
+is_port_listening() {
+    local port="${1:?port is required}"
+
+    if command -v lsof >/dev/null 2>&1; then
+        if lsof -nP -iTCP:"$port" -sTCP:LISTEN -t >/dev/null 2>&1; then
+            return 0
+        fi
+    fi
+
+    if command -v ss >/dev/null 2>&1; then
+        if ss -ltn "( sport = :$port )" 2>/dev/null | tail -n +2 | grep -q .; then
+            return 0
+        fi
+    fi
+
+    if command -v netstat >/dev/null 2>&1; then
+        if netstat -ltn 2>/dev/null | awk '{print $4}' | grep -Eq "(^|[.:])${port}$"; then
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+ensure_port_free() {
+    local port="${1:?port is required}"
+    local service="${2:-Service}"
+
+    if ! is_port_listening "$port"; then
+        return 0
+    fi
+
+    echo "✗ $service cannot start because port $port is already in use."
+    if command -v lsof >/dev/null 2>&1; then
+        lsof -nP -iTCP:"$port" -sTCP:LISTEN || true
+    fi
+    echo "  Stop the existing process on port $port, then retry."
+    return 1
+}
+
 # ── Start services ────────────────────────────────────────────────────────────
 
 mkdir -p logs
+
+ensure_port_free 2024 "LangGraph" || exit 1
+ensure_port_free 8001 "Gateway API" || exit 1
+ensure_port_free 3000 "Frontend" || exit 1
+ensure_port_free 2026 "Nginx" || exit 1
+
+if [ ! -x "$REPO_ROOT/frontend/node_modules/.bin/next" ]; then
+    echo "✗ Frontend dependencies are not installed."
+    echo "  Run 'make install' or 'cd frontend && pnpm install', then retry."
+    exit 1
+fi
 
 if $DEV_MODE; then
     LANGGRAPH_EXTRA_FLAGS="--no-reload"
@@ -166,7 +218,7 @@ echo "Starting Gateway API..."
 echo "✓ Gateway API started on localhost:8001"
 
 echo "Starting Frontend..."
-(cd frontend && $FRONTEND_CMD > ../logs/frontend.log 2>&1) &
+(cd frontend && "${FRONTEND_CMD[@]}" > ../logs/frontend.log 2>&1) &
 ./scripts/wait-for-port.sh 3000 120 "Frontend" || {
     echo "  See logs/frontend.log for details"
     tail -20 logs/frontend.log
