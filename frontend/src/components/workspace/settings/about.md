@@ -1,4 +1,4 @@
-# 🦌 [About hyperdev 2.0](https://github.com/bytedance/deer-flow)
+# 🦌 [About hyperdev 2.0](https://github.com)
 
 > **From Open Source, Back to Open Source**
 
@@ -10,7 +10,7 @@ different levels of tasks that could take minutes to hours.
 
 ## 🌟 GitHub Repository
 
-Explore hyperdev on GitHub: [github.com/bytedance/deer-flow](https://github.com/bytedance/deer-flow)
+Explore hyperdev on GitHub: [github.com/bytedance/deer-flow](https://github.com)
 
 ## 🌐 Official Website
 

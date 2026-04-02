@@ -2,7 +2,7 @@
  * About HyperDev markdown content. Inlined to avoid raw-loader dependency
  * (Turbopack cannot resolve raw-loader for .md imports).
  */
-export const aboutMarkdown = `# 🦌 [About HyperDev 2.0](https://github.com/bytedance/deer-flow)
+export const aboutMarkdown = `# 🦌 [About HyperDev 2.0](https://github.com)
 
 > 
 

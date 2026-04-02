@@ -7,6 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 <a href="https://trendshift.io/repositories/14699" target="_blank"><img src="https://trendshift.io/api/badge/repositories/14699" alt="bytedance%2Fdeer-flow | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
 > Le 28 février 2026, DeerFlow a décroché la 🏆 1re place sur GitHub Trending suite au lancement de la version 2. Un immense merci à notre incroyable communauté — c'est grâce à vous ! 💪🔥
 
 DeerFlow (**D**eep **E**xploration and **E**fficient **R**esearch **Flow**) est un **super agent harness** open source qui orchestre des **sub-agents**, de la **mémoire** et des **sandboxes** pour accomplir pratiquement n'importe quelle tâche — le tout propulsé par des **skills extensibles**.
@@ -14,7 +15,7 @@ DeerFlow (**D**eep **E**xploration and **E**fficient **R**esearch **Flow**) est 
 https://github.com/user-attachments/assets/a8bcadc4-e040-4cf2-8fda-dd768b999c18
 
 > [!NOTE]
-> **DeerFlow 2.0 est une réécriture complète.** Il ne partage aucun code avec la v1. Si vous cherchez le framework Deep Research original, il est maintenu sur la [branche `1.x`](https://github.com/bytedance/deer-flow/tree/main-1.x) — les contributions y sont toujours les bienvenues. Le développement actif a migré vers la 2.0.
+> **DeerFlow 2.0 est une réécriture complète.** Il ne partage aucun code avec la v1. Si vous cherchez le framework Deep Research original, il est maintenu sur la [branche `1.x`](https://github.com/tree/main-1.x) — les contributions y sont toujours les bienvenues. Le développement actif a migré vers la 2.0.
 
 ## Site officiel
 
@@ -94,7 +95,7 @@ Ce prompt est destiné aux coding agents. Il leur demande de cloner le dépôt s
 1. **Cloner le dépôt DeerFlow**
 
    ```bash
-   git clone https://github.com/bytedance/deer-flow.git
+   git clone https://github.com.git
    cd deer-flow
    ```
 
@@ -114,19 +115,19 @@ Ce prompt est destiné aux coding agents. Il leur demande de cloner le dépôt s
 
    ```yaml
    models:
-     - name: gpt-4                       # Internal identifier
-       display_name: GPT-4               # Human-readable name
-       use: langchain_openai:ChatOpenAI  # LangChain class path
-       model: gpt-4                      # Model identifier for API
-       api_key: $OPENAI_API_KEY          # API key (recommended: use env var)
-       max_tokens: 4096                  # Maximum tokens per request
-       temperature: 0.7                  # Sampling temperature
+     - name: gpt-4 # Internal identifier
+       display_name: GPT-4 # Human-readable name
+       use: langchain_openai:ChatOpenAI # LangChain class path
+       model: gpt-4 # Model identifier for API
+       api_key: $OPENAI_API_KEY # API key (recommended: use env var)
+       max_tokens: 4096 # Maximum tokens per request
+       temperature: 0.7 # Sampling temperature
 
      - name: openrouter-gemini-2.5-flash
        display_name: Gemini 2.5 Flash (OpenRouter)
        use: langchain_openai:ChatOpenAI
        model: google/gemini-2.5-flash-preview
-       api_key: $OPENAI_API_KEY          # OpenRouter still uses the OpenAI-compatible field name here
+       api_key: $OPENAI_API_KEY # OpenRouter still uses the OpenAI-compatible field name here
        base_url: https://openrouter.ai/api/v1
 
      - name: gpt-5-responses
@@ -176,32 +177,31 @@ Ce prompt est destiné aux coding agents. Il leur demande de cloner le dépôt s
 
 - Option A : Éditer le fichier `.env` à la racine du projet (recommandé)
 
-
-   ```bash
-   TAVILY_API_KEY=your-tavily-api-key
-   OPENAI_API_KEY=your-openai-api-key
-   # OpenRouter also uses OPENAI_API_KEY when your config uses langchain_openai:ChatOpenAI + base_url.
-   # Add other provider keys as needed
-   INFOQUEST_API_KEY=your-infoquest-api-key
-   ```
+  ```bash
+  TAVILY_API_KEY=your-tavily-api-key
+  OPENAI_API_KEY=your-openai-api-key
+  # OpenRouter also uses OPENAI_API_KEY when your config uses langchain_openai:ChatOpenAI + base_url.
+  # Add other provider keys as needed
+  INFOQUEST_API_KEY=your-infoquest-api-key
+  ```
 
 - Option B : Exporter les variables d'environnement dans votre shell
 
-   ```bash
-   export OPENAI_API_KEY=your-openai-api-key
-   ```
+  ```bash
+  export OPENAI_API_KEY=your-openai-api-key
+  ```
 
-   Pour les providers basés sur un CLI :
-   - Codex CLI : `~/.codex/auth.json`
-   - Claude Code OAuth : handoff explicite via env/fichier ou `~/.claude/.credentials.json`
+  Pour les providers basés sur un CLI :
+  - Codex CLI : `~/.codex/auth.json`
+  - Claude Code OAuth : handoff explicite via env/fichier ou `~/.claude/.credentials.json`
 
 - Option C : Éditer `config.yaml` directement (non recommandé en production)
 
-   ```yaml
-   models:
-     - name: gpt-4
-       api_key: your-actual-api-key-here  # Replace placeholder
-   ```
+  ```yaml
+  models:
+    - name: gpt-4
+      api_key: your-actual-api-key-here # Replace placeholder
+  ```
 
 ### Lancer l'application
 
@@ -241,22 +241,26 @@ Si vous préférez lancer les services en local :
 Prérequis : complétez d'abord les étapes de « Configuration » ci-dessus (`make config` et clés API des modèles). `make dev` nécessite un fichier de configuration valide (par défaut `config.yaml` à la racine du projet ; modifiable via `DEER_FLOW_CONFIG_PATH`).
 
 1. **Vérifier les prérequis** :
+
    ```bash
    make check  # Verifies Node.js 22+, pnpm, uv, nginx
    ```
 
 2. **Installer les dépendances** :
+
    ```bash
    make install  # Install backend + frontend dependencies
    ```
 
 3. **(Optionnel) Pré-télécharger l'image sandbox** :
+
    ```bash
    # Recommended if using Docker/Container-based sandbox
    make setup-sandbox
    ```
 
 4. **Démarrer les services** :
+
    ```bash
    make dev
    ```
@@ -264,9 +268,11 @@ Prérequis : complétez d'abord les étapes de « Configuration » ci-dessus (`m
 5. **Accès** : http://localhost:2026
 
 ### Avancé
+
 #### Mode Sandbox
 
 DeerFlow supporte plusieurs modes d'exécution sandbox :
+
 - **Exécution locale** (exécute le code sandbox directement sur la machine hôte)
 - **Exécution Docker** (exécute le code sandbox dans des conteneurs Docker isolés)
 - **Exécution Docker avec Kubernetes** (exécute le code sandbox dans des pods Kubernetes via le service provisioner)
@@ -285,11 +291,11 @@ Voir le [Guide MCP Server](backend/docs/MCP_SERVER.md) pour les instructions dé
 
 DeerFlow peut recevoir des tâches depuis des applications de messagerie. Les canaux démarrent automatiquement une fois configurés — aucune IP publique n'est requise.
 
-| Canal | Transport | Difficulté |
-|---------|-----------|------------|
-| Telegram | Bot API (long-polling) | Facile |
-| Slack | Socket Mode | Modérée |
-| Feishu / Lark | WebSocket | Modérée |
+| Canal         | Transport              | Difficulté |
+| ------------- | ---------------------- | ---------- |
+| Telegram      | Bot API (long-polling) | Facile     |
+| Slack         | Socket Mode            | Modérée    |
+| Feishu / Lark | WebSocket              | Modérée    |
 
 **Configuration dans `config.yaml` :**
 
@@ -319,14 +325,14 @@ channels:
 
   slack:
     enabled: true
-    bot_token: $SLACK_BOT_TOKEN     # xoxb-...
-    app_token: $SLACK_APP_TOKEN     # xapp-... (Socket Mode)
-    allowed_users: []               # empty = allow all
+    bot_token: $SLACK_BOT_TOKEN # xoxb-...
+    app_token: $SLACK_APP_TOKEN # xapp-... (Socket Mode)
+    allowed_users: [] # empty = allow all
 
   telegram:
     enabled: true
     bot_token: $TELEGRAM_BOT_TOKEN
-    allowed_users: []               # empty = allow all
+    allowed_users: [] # empty = allow all
 
     # Optional: per-channel / per-user session settings
     session:
@@ -382,13 +388,13 @@ FEISHU_APP_SECRET=your_app_secret
 
 Une fois un canal connecté, vous pouvez interagir avec DeerFlow directement depuis le chat :
 
-| Commande | Description |
-|---------|-------------|
-| `/new` | Démarrer une nouvelle conversation |
+| Commande  | Description                           |
+| --------- | ------------------------------------- |
+| `/new`    | Démarrer une nouvelle conversation    |
 | `/status` | Afficher les infos du thread en cours |
-| `/models` | Lister les modèles disponibles |
-| `/memory` | Consulter la mémoire |
-| `/help` | Afficher l'aide |
+| `/models` | Lister les modèles disponibles        |
+| `/memory` | Consulter la mémoire                  |
+| `/help`   | Afficher l'aide                       |
 
 > Les messages sans préfixe de commande sont traités comme du chat classique — DeerFlow crée un thread et répond de manière conversationnelle.
 
@@ -423,7 +429,7 @@ Utilisez-le tel quel. Ou démontez-le et faites-en le vôtre.
 
 ### Skills et outils
 
-Les skills sont ce qui permet à DeerFlow de faire *pratiquement n'importe quoi*.
+Les skills sont ce qui permet à DeerFlow de faire _pratiquement n'importe quoi_.
 
 Un Agent Skill standard est un module de capacité structuré — un fichier Markdown qui définit un workflow, des bonnes pratiques et des références vers des ressources associées. DeerFlow est livré avec des skills intégrés pour la recherche, la génération de rapports, la création de présentations, les pages web, la génération d'images et de vidéos, et bien plus. Mais la vraie force réside dans l'extensibilité : ajoutez vos propres skills, remplacez ceux fournis, ou combinez-les en workflows composites.
 
@@ -455,12 +461,13 @@ Le skill `claude-to-deerflow` vous permet d'interagir avec une instance DeerFlow
 **Installer le skill** :
 
 ```bash
-npx skills add https://github.com/bytedance/deer-flow --skill claude-to-deerflow
+npx skills add https://github.com --skill claude-to-deerflow
 ```
 
 Assurez-vous ensuite que DeerFlow tourne (par défaut sur `http://localhost:2026`) et utilisez la commande `/claude-to-deerflow` dans Claude Code.
 
 **Ce que vous pouvez faire** :
+
 - Envoyer des messages à DeerFlow et recevoir des réponses en streaming
 - Choisir le mode d'exécution : flash (rapide), standard, pro (planification), ultra (sub-agents)
 - Vérifier la santé de DeerFlow, lister les modèles/skills/agents
@@ -487,7 +494,7 @@ C'est comme ça que DeerFlow gère les tâches qui prennent de quelques minutes 
 
 ### Sandbox et système de fichiers
 
-DeerFlow ne se contente pas de *parler* de faire les choses. Il dispose de son propre ordinateur.
+DeerFlow ne se contente pas de _parler_ de faire les choses. Il dispose de son propre ordinateur.
 
 Chaque tâche s'exécute dans un conteneur Docker isolé avec un système de fichiers complet — skills, workspace, uploads, outputs. L'agent lit, écrit et édite des fichiers. Il exécute des commandes bash et du code. Il visualise des images. Le tout sandboxé, le tout auditable, zéro contamination entre les sessions.
 

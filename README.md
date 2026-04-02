@@ -7,6 +7,7 @@ English | [中文](./README_zh.md) | [日本語](./README_ja.md) | [Français](.
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 <a href="https://trendshift.io/repositories/14699" target="_blank"><img src="https://trendshift.io/api/badge/repositories/14699" alt="bytedance%2Fdeer-flow | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
 > On February 28th, 2026, DeerFlow claimed the 🏆 #1 spot on GitHub Trending following the launch of version 2. Thanks a million to our incredible community — you made this happen! 💪🔥
 
 DeerFlow (**D**eep **E**xploration and **E**fficient **R**esearch **Flow**) is an open-source **super agent harness** that orchestrates **sub-agents**, **memory**, and **sandboxes** to do almost anything — powered by **extensible skills**.
@@ -14,7 +15,7 @@ DeerFlow (**D**eep **E**xploration and **E**fficient **R**esearch **Flow**) is a
 https://github.com/user-attachments/assets/a8bcadc4-e040-4cf2-8fda-dd768b999c18
 
 > [!NOTE]
-> **DeerFlow 2.0 is a ground-up rewrite.** It shares no code with v1. If you're looking for the original Deep Research framework, it's maintained on the [`1.x` branch](https://github.com/bytedance/deer-flow/tree/main-1.x) — contributions there are still welcome. Active development has moved to 2.0.
+> **DeerFlow 2.0 is a ground-up rewrite.** It shares no code with v1. If you're looking for the original Deep Research framework, it's maintained on the [`1.x` branch](https://github.com/tree/main-1.x) — contributions there are still welcome. Active development has moved to 2.0.
 
 ## Official Website
 
@@ -94,7 +95,7 @@ That prompt is intended for coding agents. It tells the agent to clone the repo 
 1. **Clone the DeerFlow repository**
 
    ```bash
-   git clone https://github.com/bytedance/deer-flow.git
+   git clone https://github.com.git
    cd deer-flow
    ```
 
@@ -114,19 +115,19 @@ That prompt is intended for coding agents. It tells the agent to clone the repo 
 
    ```yaml
    models:
-     - name: gpt-4                       # Internal identifier
-       display_name: GPT-4               # Human-readable name
-       use: langchain_openai:ChatOpenAI  # LangChain class path
-       model: gpt-4                      # Model identifier for API
-       api_key: $OPENAI_API_KEY          # API key (recommended: use env var)
-       max_tokens: 4096                  # Maximum tokens per request
-       temperature: 0.7                  # Sampling temperature
+     - name: gpt-4 # Internal identifier
+       display_name: GPT-4 # Human-readable name
+       use: langchain_openai:ChatOpenAI # LangChain class path
+       model: gpt-4 # Model identifier for API
+       api_key: $OPENAI_API_KEY # API key (recommended: use env var)
+       max_tokens: 4096 # Maximum tokens per request
+       temperature: 0.7 # Sampling temperature
 
      - name: openrouter-gemini-2.5-flash
        display_name: Gemini 2.5 Flash (OpenRouter)
        use: langchain_openai:ChatOpenAI
        model: google/gemini-2.5-flash-preview
-       api_key: $OPENAI_API_KEY          # OpenRouter still uses the OpenAI-compatible field name here
+       api_key: $OPENAI_API_KEY # OpenRouter still uses the OpenAI-compatible field name here
        base_url: https://openrouter.ai/api/v1
 
      - name: gpt-5-responses
@@ -170,39 +171,38 @@ That prompt is intended for coding agents. It tells the agent to clone the repo 
    ```bash
    eval "$(python3 scripts/export_claude_code_oauth.py --print-export)"
    ```
-   
+
 4. **Set API keys for your configured model(s)**
 
    Choose one of the following methods:
 
 - Option A: Edit the `.env` file in the project root (Recommended)
 
-
-   ```bash
-   TAVILY_API_KEY=your-tavily-api-key
-   OPENAI_API_KEY=your-openai-api-key
-   # OpenRouter also uses OPENAI_API_KEY when your config uses langchain_openai:ChatOpenAI + base_url.
-   # Add other provider keys as needed
-   INFOQUEST_API_KEY=your-infoquest-api-key
-   ```
+  ```bash
+  TAVILY_API_KEY=your-tavily-api-key
+  OPENAI_API_KEY=your-openai-api-key
+  # OpenRouter also uses OPENAI_API_KEY when your config uses langchain_openai:ChatOpenAI + base_url.
+  # Add other provider keys as needed
+  INFOQUEST_API_KEY=your-infoquest-api-key
+  ```
 
 - Option B: Export environment variables in your shell
 
-   ```bash
-   export OPENAI_API_KEY=your-openai-api-key
-   ```
+  ```bash
+  export OPENAI_API_KEY=your-openai-api-key
+  ```
 
-   For CLI-backed providers:
-   - Codex CLI: `~/.codex/auth.json`
-   - Claude Code OAuth: explicit env/file handoff or `~/.claude/.credentials.json`
+  For CLI-backed providers:
+  - Codex CLI: `~/.codex/auth.json`
+  - Claude Code OAuth: explicit env/file handoff or `~/.claude/.credentials.json`
 
 - Option C: Edit `config.yaml` directly (Not recommended for production)
 
-   ```yaml
-   models:
-     - name: gpt-4
-       api_key: your-actual-api-key-here  # Replace placeholder
-   ```
+  ```yaml
+  models:
+    - name: gpt-4
+      api_key: your-actual-api-key-here # Replace placeholder
+  ```
 
 ### Running the Application
 
@@ -245,29 +245,35 @@ If you prefer running services locally:
 Prerequisite: complete the "Configuration" steps above first (`make config` and model API keys). `make dev` requires a valid configuration file (defaults to `config.yaml` in the project root; can be overridden via `DEER_FLOW_CONFIG_PATH`).
 
 1. **Check prerequisites**:
+
    ```bash
    make check  # Verifies Node.js 22+, pnpm, uv, nginx
    ```
 
 2. **Install dependencies**:
+
    ```bash
    make install  # Install backend + frontend dependencies
    ```
 
 3. **(Optional) Pre-pull sandbox image**:
+
    ```bash
    # Recommended if using Docker/Container-based sandbox
    make setup-sandbox
    ```
 
 4. **(Optional) Load sample memory data for local review**:
+
    ```bash
    python scripts/load_memory_sample.py
    ```
+
    This copies the sample fixture into the default local runtime memory file so reviewers can immediately test `Settings > Memory`.
    See [backend/docs/MEMORY_SETTINGS_REVIEW.md](backend/docs/MEMORY_SETTINGS_REVIEW.md) for the shortest review flow.
 
 5. **Start services**:
+
    ```bash
    make dev
    ```
@@ -275,9 +281,11 @@ Prerequisite: complete the "Configuration" steps above first (`make config` and 
 6. **Access**: http://localhost:2026
 
 ### Advanced
+
 #### Sandbox Mode
 
 DeerFlow supports multiple sandbox execution modes:
+
 - **Local Execution** (runs sandbox code directly on the host machine)
 - **Docker Execution** (runs sandbox code in isolated Docker containers)
 - **Docker Execution with Kubernetes** (runs sandbox code in Kubernetes pods via provisioner service)
@@ -296,11 +304,11 @@ See the [MCP Server Guide](backend/docs/MCP_SERVER.md) for detailed instructions
 
 DeerFlow supports receiving tasks from messaging apps. Channels auto-start when configured — no public IP required for any of them.
 
-| Channel | Transport | Difficulty |
-|---------|-----------|------------|
-| Telegram | Bot API (long-polling) | Easy |
-| Slack | Socket Mode | Moderate |
-| Feishu / Lark | WebSocket | Moderate |
+| Channel       | Transport              | Difficulty |
+| ------------- | ---------------------- | ---------- |
+| Telegram      | Bot API (long-polling) | Easy       |
+| Slack         | Socket Mode            | Moderate   |
+| Feishu / Lark | WebSocket              | Moderate   |
 
 **Configuration in `config.yaml`:**
 
@@ -313,7 +321,7 @@ channels:
 
   # Optional: global session defaults for all mobile channels
   session:
-    assistant_id: lead_agent  # or a custom agent name; custom agents are routed via lead_agent + agent_name
+    assistant_id: lead_agent # or a custom agent name; custom agents are routed via lead_agent + agent_name
     config:
       recursion_limit: 100
     context:
@@ -330,18 +338,18 @@ channels:
 
   slack:
     enabled: true
-    bot_token: $SLACK_BOT_TOKEN     # xoxb-...
-    app_token: $SLACK_APP_TOKEN     # xapp-... (Socket Mode)
-    allowed_users: []               # empty = allow all
+    bot_token: $SLACK_BOT_TOKEN # xoxb-...
+    app_token: $SLACK_APP_TOKEN # xapp-... (Socket Mode)
+    allowed_users: [] # empty = allow all
 
   telegram:
     enabled: true
     bot_token: $TELEGRAM_BOT_TOKEN
-    allowed_users: []               # empty = allow all
+    allowed_users: [] # empty = allow all
 
     # Optional: per-channel / per-user session settings
     session:
-      assistant_id: mobile-agent  # custom agent names are also supported here
+      assistant_id: mobile-agent # custom agent names are also supported here
       context:
         thinking_enabled: false
       users:
@@ -355,6 +363,7 @@ channels:
 ```
 
 Notes:
+
 - `assistant_id: lead_agent` calls the default LangGraph assistant directly.
 - If `assistant_id` is set to a custom agent name, DeerFlow still routes through `lead_agent` and injects that value as `agent_name`, so the custom agent's SOUL/config takes effect for IM channels.
 
@@ -399,13 +408,13 @@ When DeerFlow runs in Docker Compose, IM channels execute inside the `gateway` c
 
 Once a channel is connected, you can interact with DeerFlow directly from the chat:
 
-| Command | Description |
-|---------|-------------|
-| `/new` | Start a new conversation |
+| Command   | Description              |
+| --------- | ------------------------ |
+| `/new`    | Start a new conversation |
 | `/status` | Show current thread info |
-| `/models` | List available models |
-| `/memory` | View memory |
-| `/help` | Show help |
+| `/models` | List available models    |
+| `/memory` | View memory              |
+| `/help`   | Show help                |
 
 > Messages without a command prefix are treated as regular chat — DeerFlow creates a thread and responds conversationally.
 
@@ -440,7 +449,7 @@ Use it as-is. Or tear it apart and make it yours.
 
 ### Skills & Tools
 
-Skills are what make DeerFlow do *almost anything*.
+Skills are what make DeerFlow do _almost anything_.
 
 A standard Agent Skill is a structured capability module — a Markdown file that defines a workflow, best practices, and references to supporting resources. DeerFlow ships with built-in skills for research, report generation, slide creation, web pages, image and video generation, and more. But the real power is extensibility: add your own skills, replace the built-in ones, or combine them into compound workflows.
 
@@ -472,12 +481,13 @@ The `claude-to-deerflow` skill lets you interact with a running DeerFlow instanc
 **Install the skill**:
 
 ```bash
-npx skills add https://github.com/bytedance/deer-flow --skill claude-to-deerflow
+npx skills add https://github.com --skill claude-to-deerflow
 ```
 
 Then make sure DeerFlow is running (default at `http://localhost:2026`) and use the `/claude-to-deerflow` command in Claude Code.
 
 **What you can do**:
+
 - Send messages to DeerFlow and get streaming responses
 - Choose execution modes: flash (fast), standard, pro (planning), ultra (sub-agents)
 - Check DeerFlow health, list models/skills/agents
@@ -504,7 +514,7 @@ This is how DeerFlow handles tasks that take minutes to hours: a research task m
 
 ### Sandbox & File System
 
-DeerFlow doesn't just *talk* about doing things. It has its own computer.
+DeerFlow doesn't just _talk_ about doing things. It has its own computer.
 
 Each task gets its own execution environment with a full filesystem view — skills, workspace, uploads, outputs. The agent reads, writes, and edits files. It can view images and, when configured safely, execute shell commands.
 

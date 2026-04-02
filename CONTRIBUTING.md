@@ -18,6 +18,7 @@ Docker provides a consistent, isolated environment with all dependencies pre-con
 #### Setup Steps
 
 1. **Configure the application**:
+
    ```bash
    # Copy example configuration
    cp config.example.yaml config.yaml
@@ -28,9 +29,11 @@ Docker provides a consistent, isolated environment with all dependencies pre-con
    ```
 
 2. **Initialize Docker environment** (first time only):
+
    ```bash
    make docker-init
    ```
+
    This will:
    - Build Docker images
    - Install frontend dependencies (pnpm)
@@ -38,9 +41,11 @@ Docker provides a consistent, isolated environment with all dependencies pre-con
    - Share pnpm cache with host for faster builds
 
 3. **Start development services**:
+
    ```bash
    make docker-start
    ```
+
    `make docker-start` reads `config.yaml` and starts `provisioner` only for provisioner/Kubernetes sandbox mode.
 
    All services will start with hot-reload enabled:
@@ -50,8 +55,8 @@ Docker provides a consistent, isolated environment with all dependencies pre-con
 
 4. **Access the application**:
    - Web Interface: http://localhost:2026
-   - API Gateway: http://localhost:2026/api/*
-   - LangGraph: http://localhost:2026/api/langgraph/*
+   - API Gateway: http://localhost:2026/api/\*
+   - LangGraph: http://localhost:2026/api/langgraph/\*
 
 #### Docker Commands
 
@@ -125,6 +130,7 @@ Docker Compose (deer-flow-dev)
 ```
 
 **Benefits of Docker Development**:
+
 - ✅ Consistent environment across different machines
 - ✅ No need to install Node.js, Python, or nginx locally
 - ✅ Isolated dependencies and services
@@ -145,6 +151,7 @@ make check
 ```
 
 Required tools:
+
 - Node.js 22+
 - pnpm
 - uv (Python package manager)
@@ -155,11 +162,13 @@ Required tools:
 1. **Configure the application** (same as Docker setup above)
 
 2. **Install dependencies**:
+
    ```bash
    make install
    ```
 
 3. **Run development server** (starts all services with nginx):
+
    ```bash
    make dev
    ```
@@ -173,6 +182,7 @@ Required tools:
 If you need to start services individually:
 
 1. **Start backend services**:
+
    ```bash
    # Terminal 1: Start LangGraph Server (port 2024)
    cd backend
@@ -188,6 +198,7 @@ If you need to start services individually:
    ```
 
 2. **Start nginx**:
+
    ```bash
    make nginx
    # or directly: nginx -c $(pwd)/docker/nginx/nginx.local.conf -g 'daemon off;'
@@ -199,6 +210,7 @@ If you need to start services individually:
 #### Nginx Configuration
 
 The nginx configuration provides:
+
 - Unified entry point on port 2026
 - Routes `/api/langgraph/*` to LangGraph Server (2024)
 - Routes other `/api/*` endpoints to Gateway API (8001)
@@ -251,6 +263,7 @@ Nginx (port 2026) ← Unified entry point
 ## Development Workflow
 
 1. **Create a feature branch**:
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -258,6 +271,7 @@ Nginx (port 2026) ← Unified entry point
 2. **Make your changes** with hot-reload enabled
 
 3. **Format and lint your code** (CI will reject unformatted code):
+
    ```bash
    # Backend
    cd backend
@@ -271,6 +285,7 @@ Nginx (port 2026) ← Unified entry point
 4. **Test your changes** thoroughly
 
 5. **Commit your changes**:
+
    ```bash
    git add .
    git commit -m "feat: description of your changes"
@@ -314,9 +329,9 @@ Every pull request runs the backend regression workflow at [.github/workflows/ba
 
 ## Need Help?
 
-- Check existing [Issues](https://github.com/bytedance/deer-flow/issues)
+- Check existing [Issues](https://github.com/issues)
 - Read the [Documentation](backend/docs/)
-- Ask questions in [Discussions](https://github.com/bytedance/deer-flow/discussions)
+- Ask questions in [Discussions](https://github.com/discussions)
 
 ## License
 

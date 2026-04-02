@@ -1,6 +1,6 @@
 # Guardrails: Pre-Tool-Call Authorization
 
-> **Context:** [Issue #1213](https://github.com/bytedance/deer-flow/issues/1213) — DeerFlow has Docker sandboxing and human approval via `ask_clarification`, but no deterministic, policy-driven authorization layer for tool calls. An agent running autonomous multi-step tasks can execute any loaded tool with any arguments. Guardrails add a middleware that evaluates every tool call against a policy **before** execution.
+> **Context:** [Issue #1213](https://github.com/issues/1213) — DeerFlow has Docker sandboxing and human approval via `ask_clarification`, but no deterministic, policy-driven authorization layer for tool calls. An agent running autonomous multi-step tasks can execute any loaded tool with any arguments. Guardrails add a middleware that evaluates every tool call against a policy **before** execution.
 
 ## Why Guardrails
 
@@ -85,6 +85,7 @@ The `GuardrailMiddleware` implements `wrap_tool_call` / `awrap_tool_call` (the s
 The simplest option. Ships with DeerFlow. Block or allow tools by name. No external packages, no passport, no network.
 
 **config.yaml:**
+
 ```yaml
 guardrails:
   enabled: true
@@ -97,6 +98,7 @@ guardrails:
 This blocks `bash` and `write_file` for all requests. All other tools pass through.
 
 You can also use an allowlist (only these tools are permitted):
+
 ```yaml
 guardrails:
   enabled: true
@@ -107,6 +109,7 @@ guardrails:
 ```
 
 **Try it:**
+
 1. Add the config above to your `config.yaml`
 2. Start DeerFlow: `make dev`
 3. Ask the agent: "Use bash to run echo hello"
@@ -160,10 +163,12 @@ aport setup --framework deerflow
 ```
 
 This creates:
+
 - `~/.aport/deerflow/config.yaml` -- evaluator config (local or API mode)
 - `~/.aport/deerflow/aport/passport.json` -- OAP passport with capabilities and limits
 
 **config.yaml (using APort as the provider):**
+
 ```yaml
 guardrails:
   enabled: true
@@ -172,6 +177,7 @@ guardrails:
 ```
 
 **config.yaml (using your own OAP provider):**
+
 ```yaml
 guardrails:
   enabled: true
@@ -185,25 +191,26 @@ Any provider that accepts `framework` as a kwarg and implements `evaluate`/`aeva
 
 **What the passport controls:**
 
-| Passport field | What it does | Example |
-|---|---|---|
-| `capabilities[].id` | Which tool categories the agent can use | `system.command.execute`, `data.file.write` |
-| `limits.*.allowed_commands` | Which commands are allowed | `["git", "npm", "node"]` or `["*"]` for all |
-| `limits.*.blocked_patterns` | Patterns always denied | `["rm -rf", "sudo", "chmod 777"]` |
-| `status` | Kill switch | `active`, `suspended`, `revoked` |
+| Passport field              | What it does                            | Example                                     |
+| --------------------------- | --------------------------------------- | ------------------------------------------- |
+| `capabilities[].id`         | Which tool categories the agent can use | `system.command.execute`, `data.file.write` |
+| `limits.*.allowed_commands` | Which commands are allowed              | `["git", "npm", "node"]` or `["*"]` for all |
+| `limits.*.blocked_patterns` | Patterns always denied                  | `["rm -rf", "sudo", "chmod 777"]`           |
+| `status`                    | Kill switch                             | `active`, `suspended`, `revoked`            |
 
 **Evaluation modes (provider-dependent):**
 
 OAP providers may support different evaluation modes. For example, the APort reference implementation supports:
 
-| Mode | How it works | Network | Latency |
-|---|---|---|---|
-| **Local** | Evaluates passport locally (bash script). | None | ~300ms |
-| **API** | Sends passport + context to a hosted evaluator. Signed decisions. | Yes | ~65ms |
+| Mode      | How it works                                                      | Network | Latency |
+| --------- | ----------------------------------------------------------------- | ------- | ------- |
+| **Local** | Evaluates passport locally (bash script).                         | None    | ~300ms  |
+| **API**   | Sends passport + context to a hosted evaluator. Signed decisions. | Yes     | ~65ms   |
 
 A custom OAP provider can implement any evaluation strategy -- the DeerFlow middleware doesn't care how the provider reaches its decision.
 
 **Try it:**
+
 1. Install and set up as above
 2. Start DeerFlow and ask: "Create a file called test.txt with content hello"
 3. Then ask: "Now delete it using bash rm -rf"
@@ -236,6 +243,7 @@ class MyGuardrailProvider:
 ```
 
 **config.yaml:**
+
 ```yaml
 guardrails:
   enabled: true
@@ -246,6 +254,7 @@ guardrails:
 Make sure `my_guardrail.py` is on the Python path (e.g. in the backend directory or installed as a package).
 
 **Try it:**
+
 1. Create `my_guardrail.py` in the backend directory
 2. Add the config
 3. Start DeerFlow and ask: "Use bash to delete test.txt"
@@ -286,35 +295,35 @@ Make sure `my_guardrail.py` is on the Python path (e.g. in the backend directory
 
 These are the tool names your provider will see in `request.tool_name`:
 
-| Tool | What it does |
-|---|---|
-| `bash` | Shell command execution |
-| `write_file` | Create/overwrite a file |
-| `str_replace` | Edit a file (find and replace) |
-| `read_file` | Read file content |
-| `ls` | List directory |
-| `web_search` | Web search query |
-| `web_fetch` | Fetch URL content |
-| `image_search` | Image search |
-| `present_file` | Present file to user |
-| `view_image` | Display image |
-| `ask_clarification` | Ask user a question |
-| `task` | Delegate to subagent |
-| `mcp__*` | MCP tools (dynamic) |
+| Tool                | What it does                   |
+| ------------------- | ------------------------------ |
+| `bash`              | Shell command execution        |
+| `write_file`        | Create/overwrite a file        |
+| `str_replace`       | Edit a file (find and replace) |
+| `read_file`         | Read file content              |
+| `ls`                | List directory                 |
+| `web_search`        | Web search query               |
+| `web_fetch`         | Fetch URL content              |
+| `image_search`      | Image search                   |
+| `present_file`      | Present file to user           |
+| `view_image`        | Display image                  |
+| `ask_clarification` | Ask user a question            |
+| `task`              | Delegate to subagent           |
+| `mcp__*`            | MCP tools (dynamic)            |
 
 ### OAP Reason Codes
 
 Standard codes used by the [OAP specification](https://github.com/aporthq/aport-spec):
 
-| Code | Meaning |
-|---|---|
-| `oap.allowed` | Tool call authorized |
-| `oap.tool_not_allowed` | Tool not in allowlist |
-| `oap.command_not_allowed` | Command not in allowed_commands |
-| `oap.blocked_pattern` | Command matches a blocked pattern |
-| `oap.limit_exceeded` | Operation exceeds a limit |
-| `oap.passport_suspended` | Passport status is suspended/revoked |
-| `oap.evaluator_error` | Provider crashed (fail-closed) |
+| Code                      | Meaning                              |
+| ------------------------- | ------------------------------------ |
+| `oap.allowed`             | Tool call authorized                 |
+| `oap.tool_not_allowed`    | Tool not in allowlist                |
+| `oap.command_not_allowed` | Command not in allowed_commands      |
+| `oap.blocked_pattern`     | Command matches a blocked pattern    |
+| `oap.limit_exceeded`      | Operation exceeds a limit            |
+| `oap.passport_suspended`  | Passport status is suspended/revoked |
+| `oap.evaluator_error`     | Provider crashed (fail-closed)       |
 
 ### Provider Loading
 
@@ -346,7 +355,7 @@ guardrails:
   # Provider: loaded by class path via resolve_variable
   provider:
     use: deerflow.guardrails.builtin:AllowlistProvider
-    config:  # optional kwargs passed to provider.__init__
+    config: # optional kwargs passed to provider.__init__
       denied_tools: ["bash"]
 ```
 
@@ -358,6 +367,7 @@ uv run python -m pytest tests/test_guardrail_middleware.py -v
 ```
 
 25 tests covering:
+
 - AllowlistProvider: allow, deny, both allowlist+denylist, async
 - GuardrailMiddleware: allow passthrough, deny with OAP codes, fail-closed, fail-open, passport forwarding, empty reasons fallback, empty tool name, protocol isinstance check
 - Async paths: awrap_tool_call for allow, deny, fail-closed, fail-open

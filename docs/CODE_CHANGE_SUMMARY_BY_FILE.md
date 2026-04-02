@@ -29,7 +29,7 @@
 @@ -240,34 +240,8 @@ You have access to skills that provide optimized workflows for specific tasks. E
  - Action-Oriented: Focus on delivering results, not explaining processes
  </response_style>
- 
+
 -<citations_format>
 -After web_search, ALWAYS include citations in your output:
 -
@@ -86,12 +86,12 @@
  import zipfile
  from pathlib import Path
  from urllib.parse import quote
- 
+
 -from fastapi import APIRouter, HTTPException, Request, Response
 -from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 +from fastapi import APIRouter, HTTPException, Request
 +from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, Response
- 
+
  from app.gateway.path_utils import resolve_thread_virtual_path
 ```
 
@@ -102,8 +102,8 @@
 ```diff
 @@ -24,40 +22,6 @@ def is_text_file_by_content(path: Path, sample_size: int = 8192) -> bool:
          return False
- 
- 
+
+
 -def _extract_citation_urls(content: str) -> set[str]:
 -    """Extract URLs from <citations> JSONL blocks. Format must match frontend core/citations/utils.ts."""
 -    urls: set[str] = set()
@@ -145,13 +145,13 @@
 
 ```diff
 @@ -172,24 +136,9 @@ async def get_artifact(thread_id: str, path: str, request: Request) -> FileRespo
- 
+
      # Encode filename for Content-Disposition header (RFC 5987)
      encoded_filename = quote(actual_path.name)
--    
+-
 -    # Check if this is a markdown file that might contain citations
 -    is_markdown = mime_type == "text/markdown" or actual_path.suffix.lower() in [".md", ".markdown"]
--    
+-
 +
      # if `download` query parameter is true, return the file as a download
      if request.query_params.get("download"):
@@ -168,7 +168,7 @@
 -                }
 -            )
          return FileResponse(path=actual_path, filename=actual_path.name, media_type=mime_type, headers={"Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"})
- 
+
      if mime_type and mime_type == "text/html":
 ```
 
@@ -182,7 +182,7 @@
 @@ -24,21 +24,10 @@ Do NOT use for simple, single-step operations.""",
  - Do NOT ask for clarification - work with the information provided
  </guidelines>
- 
+
 -<citations_format>
 -If you used web_search (or similar) and cite sources, ALWAYS include citations in your output:
 -1. Start with a `<citations>` block in JSONL format listing all sources (one JSON object per line)
@@ -232,13 +232,14 @@
 ```diff
 @@ -30,7 +30,7 @@ Frontend (Next.js) ──▶ LangGraph SDK ──▶ LangGraph Backend (lead_age
                                                └── Tools & Skills
- ```
- 
+```
+
 -The frontend is a stateful chat application. Users create **threads** (conversations), send messages, and receive streamed AI responses. The backend orchestrates agents that can produce **artifacts** (files/code), **todos**, and **citations**.
 +The frontend is a stateful chat application. Users create **threads** (conversations), send messages, and receive streamed AI responses. The backend orchestrates agents that can produce **artifacts** (files/code) and **todos**.
- 
- ### Source Layout (`src/`)
-```
+
+### Source Layout (`src/`)
+
+````
 
 - **第 33 行**：「and **citations**」删除。
 
@@ -254,7 +255,7 @@
 -│   ├── citations/          # Citation handling
  │   ├── config/              # App configuration
  │   ├── i18n/               # Internationalization
-```
+````
 
 - **第 92 行**：删除目录树中的 `citations/` 一行。
 
@@ -308,9 +309,9 @@
  import { useI18n } from "@/core/i18n/hooks";
  ...
 @@ -48,9 +40,6 @@ import { cn } from "@/lib/utils";
- 
+
  import { Tooltip } from "../tooltip";
- 
+
 -import { SafeCitationContent } from "../messages/safe-citation-content";
 -import { useThread } from "../messages/context";
 -
@@ -328,7 +329,7 @@
      filepath: filepathFromProps,
      enabled: isCodeFile && !isWriteFile,
    });
- 
+
 -  const parsed = useParsedCitations(
 -    language === "markdown" ? (content ?? "") : "",
 -  );
@@ -339,7 +340,7 @@
 -      ? contentWithoutCitationsFromParsed(parsed)
 -      : (content ?? "");
 +  const displayContent = content ?? "";
- 
+
    const [viewMode, setViewMode] = useState<"code" | "preview">("code");
 ```
 
@@ -434,12 +435,12 @@
 @@ -39,9 +39,7 @@ import { useArtifacts } from "../artifacts";
  import { FlipDisplay } from "../flip-display";
  import { Tooltip } from "../tooltip";
- 
+
 -import { useThread } from "./context";
 -
 -import { SafeCitationContent } from "./safe-citation-content";
 +import { MarkdownContent } from "./markdown-content";
- 
+
  export function MessageGroup({
 ```
 
@@ -505,7 +506,7 @@
 -  const threadIsLoading = thread.isLoading;
 -
 -  const fileContent = typeof args.content === "string" ? args.content : "";
- 
+
    if (name === "web_search") {
 ```
 
@@ -513,7 +514,7 @@
 @@ -364,42 +350,27 @@ function ToolCall({
        }, 100);
      }
- 
+
 -    const isMarkdown =
 -      path?.toLowerCase().endsWith(".md") ||
 -      path?.toLowerCase().endsWith(".markdown");
@@ -590,7 +591,7 @@
    extractReasoningContentFromMessage,
 @@ -24,7 +23,7 @@ import { humanMessagePlugins } from "@/core/streamdown";
  import { cn } from "@/lib/utils";
- 
+
  import { CopyButton } from "../copy-button";
 -import { SafeCitationContent } from "./safe-citation-content";
 +import { MarkdownContent } from "./markdown-content";
@@ -628,7 +629,7 @@
 
 ```diff
 @@ -26,7 +26,7 @@ import { StreamingIndicator } from "../streaming-indicator";
- 
+
  import { MessageGroup } from "./message-group";
  import { MessageListItem } from "./message-list-item";
 -import { SafeCitationContent } from "./safe-citation-content";
@@ -663,9 +664,9 @@
 
 ```diff
 @@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
- 
+
  import { FlipDisplay } from "../flip-display";
- 
+
 -import { SafeCitationContent } from "./safe-citation-content";
 +import { MarkdownContent } from "./markdown-content";
  ...
@@ -775,7 +776,7 @@ export function MarkdownContent({
 @@ -115,12 +115,6 @@ export interface Translations {
      startConversation: string;
    };
- 
+
 -  // Citations
 -  citations: {
 -    loadingCitations: string;
@@ -796,7 +797,7 @@ export function MarkdownContent({
 @@ -164,12 +164,6 @@ export const zhCN: Translations = {
      startConversation: "开始新的对话以查看消息",
    },
- 
+
 -  // Citations
 -  citations: {
 -    loadingCitations: "正在整理引用...",
@@ -817,7 +818,7 @@ export function MarkdownContent({
 @@ -167,13 +167,6 @@ export const enUS: Translations = {
      startConversation: "Start a conversation to see messages here",
    },
- 
+
 -  // Citations
 -  citations: {
 -    loadingCitations: "Organizing citations...",
@@ -878,8 +879,8 @@ export function MarkdownContent({
  ...
 @@ -109,11 +109,9 @@ Every insight must connect **Data → User Psychology → Strategy Implication**
     treating male audiences only as a secondary gift-giving segment."
- ```
- 
+```
+
 -### Citations & References
 -- **Inline**: Use `[\[Index\]](URL)` format (e.g., `[\[1\]](https://example.com)`)
 -- **Placement**: Append citations at the end of sentences using information from External Search Findings
@@ -888,15 +889,17 @@ export function MarkdownContent({
 +### References
 +- **Inline**: Use markdown links for sources (e.g. `[Source Title](URL)`) when using External Search Findings
 +- **References section**: Formatted strictly per **GB/T 7714-2015**
- ...
+...
 @@ -183,7 +181,7 @@ Before considering the report complete, verify:
- - [ ] All headings are in Chinese with proper numbering (no "Chapter/Part/Section")
- - [ ] Charts are embedded with `![Description](path)` syntax
- - [ ] Numbers use English commas for thousands separators
--- [ ] Inline citations use `[\[N\]](URL)` format
-+- [ ] Inline references use markdown links where applicable
- - [ ] References section follows GB/T 7714-2015
-```
+
+- [ ] All headings are in Chinese with proper numbering (no "Chapter/Part/Section")
+- [ ] Charts are embedded with `![Description](path)` syntax
+- [ ] Numbers use English commas for thousands separators
+      -- [ ] Inline citations use `[\[N\]](URL)` format
+      +- [ ] Inline references use markdown links where applicable
+- [ ] References section follows GB/T 7714-2015
+
+````
 
 - 多处：核心能力、输入表、Data Citation、Citations & References 小节与检查项，改为「references / 引用」表述并去掉 `[\[N\]](URL)` 格式要求。
 
@@ -907,13 +910,13 @@ export function MarkdownContent({
 ```diff
 @@ -1,12 +1,3 @@
 -<citations>
--{"id": "cite-1", "title": "DeerFlow GitHub Repository", "url": "https://github.com/bytedance/deer-flow", "snippet": "..."}
+-{"id": "cite-1", "title": "DeerFlow GitHub Repository", "url": "https://github.com", "snippet": "..."}
 -...（共 7 条 JSONL）
 -</citations>
  # DeerFlow Deep Research Report
- 
+
  - **Research Date:** 2026-02-01
-```
+````
 
 - 删除文件开头的 `<citations>...</citations>` 整块（9 行），正文从 `# DeerFlow Deep Research Report` 开始。
 
@@ -929,11 +932,11 @@ export function MarkdownContent({
 
 ## 六、统计
 
-| 项目 | 数量 |
-|------|------|
-| 修改文件 | 18 |
-| 新增文件 | 1（markdown-content.tsx） |
-| 删除文件 | 5（safe-citation-content.tsx, inline-citation.tsx, core/citations/* 共 3 个） |
-| 总行数变化 | +62 / -894（diff stat） |
+| 项目       | 数量                                                                           |
+| ---------- | ------------------------------------------------------------------------------ |
+| 修改文件   | 18                                                                             |
+| 新增文件   | 1（markdown-content.tsx）                                                      |
+| 删除文件   | 5（safe-citation-content.tsx, inline-citation.tsx, core/citations/\* 共 3 个） |
+| 总行数变化 | +62 / -894（diff stat）                                                        |
 
 以上为按文件、细到每一行 diff 的代码更改总结。
